@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "8qygxBQcxweRDwFF8JUxniFN8/CBbYUnJXIYBLnQEGA=",
+  "Source": "Taski.Api",
+  "BasePath": "_content/Taski.Api",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}

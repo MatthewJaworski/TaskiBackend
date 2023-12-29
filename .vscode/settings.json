@@ -1,0 +1,5 @@
+{
+	"appService.preDeployTask": "publish-release",
+	"appService.deploySubpath": "Taski.Api\\bin\\Release\\net7.0\\publish",
+	"appService.defaultWebAppToDeploy": "/subscriptions/fccdde59-75c6-4028-be98-f43447bf557d/resourceGroups/taski/providers/Microsoft.Web/sites/taski01"
+}
