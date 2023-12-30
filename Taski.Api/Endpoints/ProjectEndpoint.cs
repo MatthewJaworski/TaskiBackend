@@ -20,7 +20,7 @@ namespace Taski.Api.Endpoints
             group.MapGet("/user/{userId}", async (Guid userId, IRepository<Project> projectRepository) =>
             {
                 var projects = (await projectRepository.GetAllAsync(project => project.UserId == userId)).Select(project => project.AsDto());
-                return Results.Ok(projects);
+                return Results.Ok(new { projects });
             });
 
             group.MapGet("/{id}", async (Guid id, IRepository<Project> projectRepository) =>

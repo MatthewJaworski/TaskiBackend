@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Taski.Api.Data;
 
@@ -11,9 +12,11 @@ using Taski.Api.Data;
 namespace Taski.Api.Data.Migrations
 {
     [DbContext(typeof(TaskiAppContext))]
-    partial class TaskiAppContextModelSnapshot : ModelSnapshot
+    [Migration("20231230105609_TagsAdded")]
+    partial class TagsAdded
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

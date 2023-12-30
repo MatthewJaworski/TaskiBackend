@@ -1,4 +1,6 @@
+// Story.cs
 using Taski.Api.Enums;
+
 namespace Taski.Api.Entities;
 
 public class Story
@@ -17,4 +19,7 @@ public class Story
   public bool IsComplete { get; set; }
   public int StoryPoints { get; set; }
   public StoryPriority Priority { get; set; }
+  public StoryTag Tag { get; set; }
+
+  public Guid TagId { get; set; }
 }

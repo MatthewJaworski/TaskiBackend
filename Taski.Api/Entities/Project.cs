@@ -1,3 +1,4 @@
+// Project.cs
 namespace Taski.Api.Entities;
 
 public class Project
@@ -9,5 +10,5 @@ public class Project
   public string Description { get; set; }
   public DateTimeOffset CreateDate { get; set; }
   public ICollection<Story> Stories { get; set; } = new List<Story>();
+  public ICollection<ProjectTagAssociation> TagAssociations { get; set; } = new List<ProjectTagAssociation>();
 }
-
