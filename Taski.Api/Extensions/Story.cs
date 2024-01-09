@@ -7,18 +7,30 @@ public static class StoryExtensions
 {
   public static StoryDto AsDto(this Story story)
   {
+    TagDto tagDto = null;
+    if (story.Tag != null)
+    {
+      tagDto = new TagDto(story.Tag.Id, story.Tag.Name);
+    }
+
+    UserDto createdByDto = story.CreatedByUser != null ? story.CreatedByUser.AsDto() : null;
+    UserDto assignedToDto = story.AssignedToUser != null ? story.AssignedToUser.AsDto() : null;
+    List<CommentDto> comments = story.Comments.Select(c => c.AsDto()).ToList();
+
     return new StoryDto(
         story.Id,
         story.ProjectId,
-        story.CreatedBy,
-        story.AssignedTo,
+        createdByDto,
+        assignedToDto,
         story.Name,
         story.Description,
         story.CreateDate,
         story.CompleteDate,
         story.IsComplete,
         story.StoryPoints,
-        story.Priority
+        story.Priority,
+        tagDto,
+        comments
     );
   }
 }

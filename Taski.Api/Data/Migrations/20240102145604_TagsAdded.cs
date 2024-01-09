@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Taski.Api.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class TagsAdded : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -18,7 +18,8 @@ namespace Taski.Api.Data.Migrations
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Name = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     NormalizedName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
-                    ConcurrencyStamp = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    ConcurrencyStamp = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Discriminator = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -49,6 +50,30 @@ namespace Taski.Api.Data.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_AspNetUsers", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ProjectTags",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ProjectTags", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "StoryTags",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_StoryTags", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -179,6 +204,30 @@ namespace Taski.Api.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "ProjectTagAssociations",
+                columns: table => new
+                {
+                    ProjectId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    ProjectTagId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ProjectTagAssociations", x => new { x.ProjectId, x.ProjectTagId });
+                    table.ForeignKey(
+                        name: "FK_ProjectTagAssociations_ProjectTags_ProjectTagId",
+                        column: x => x.ProjectTagId,
+                        principalTable: "ProjectTags",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ProjectTagAssociations_Projects_ProjectId",
+                        column: x => x.ProjectId,
+                        principalTable: "Projects",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Stories",
                 columns: table => new
                 {
@@ -192,7 +241,8 @@ namespace Taski.Api.Data.Migrations
                     CompleteDate = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
                     IsComplete = table.Column<bool>(type: "bit", nullable: false),
                     StoryPoints = table.Column<int>(type: "int", nullable: false),
-                    Priority = table.Column<int>(type: "int", nullable: false)
+                    Priority = table.Column<int>(type: "int", nullable: false),
+                    TagId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -215,6 +265,12 @@ namespace Taski.Api.Data.Migrations
                         principalTable: "Projects",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Stories_StoryTags_TagId",
+                        column: x => x.TagId,
+                        principalTable: "StoryTags",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
@@ -262,6 +318,11 @@ namespace Taski.Api.Data.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_ProjectTagAssociations_ProjectTagId",
+                table: "ProjectTagAssociations",
+                column: "ProjectTagId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Stories_AssignedTo",
                 table: "Stories",
                 column: "AssignedTo");
@@ -275,6 +336,11 @@ namespace Taski.Api.Data.Migrations
                 name: "IX_Stories_ProjectId",
                 table: "Stories",
                 column: "ProjectId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Stories_TagId",
+                table: "Stories",
+                column: "TagId");
         }
 
         /// <inheritdoc />
@@ -296,13 +362,22 @@ namespace Taski.Api.Data.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
+                name: "ProjectTagAssociations");
+
+            migrationBuilder.DropTable(
                 name: "Stories");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
+                name: "ProjectTags");
+
+            migrationBuilder.DropTable(
                 name: "Projects");
+
+            migrationBuilder.DropTable(
+                name: "StoryTags");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");

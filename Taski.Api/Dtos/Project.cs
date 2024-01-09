@@ -6,12 +6,17 @@ public record ProjectDto(Guid Id,
     Guid UserId,
     string Name,
     string Description,
-    DateTimeOffset CreateDate
+    DateTimeOffset CreateDate,
+    List<string> Tags,
+    List<StoryDto> Stories,
+    List<UserDto> Users
+
 );
 public record CreateProjectDto(
     [Required] Guid UserId,
     [Required] string Name,
-    string Description
+    string Description,
+    List<string> Tags
 );
 public record UpdateProjectDto(
     string Name,

@@ -12,8 +12,8 @@ using Taski.Api.Data;
 namespace Taski.Api.Data.Migrations
 {
     [DbContext(typeof(TaskiAppContext))]
-    [Migration("20231230105609_TagsAdded")]
-    partial class TagsAdded
+    [Migration("20240105193750_PossibleNoTag")]
+    partial class PossibleNoTag
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -242,7 +242,7 @@ namespace Taski.Api.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("AssignedTo")
+                    b.Property<Guid?>("AssignedTo")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTimeOffset?>("CompleteDate")
@@ -255,7 +255,6 @@ namespace Taski.Api.Data.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Description")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsComplete")
@@ -274,7 +273,8 @@ namespace Taski.Api.Data.Migrations
                     b.Property<int>("StoryPoints")
                         .HasColumnType("int");
 
-                    b.Property<Guid>("TagId")
+                    b.Property<Guid?>("TagId")
+                        .IsRequired()
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
@@ -358,6 +358,21 @@ namespace Taski.Api.Data.Migrations
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
                     b.ToTable("AspNetUsers", (string)null);
+                });
+
+            modelBuilder.Entity("Taski.Api.Entities.UserProjectAssociation", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("UserId", "ProjectId");
+
+                    b.HasIndex("ProjectId");
+
+                    b.ToTable("UserProjectAssociations");
                 });
 
             modelBuilder.Entity("Taski.Api.Entities.Role", b =>
@@ -453,8 +468,7 @@ namespace Taski.Api.Data.Migrations
                     b.HasOne("Taski.Api.Entities.User", "AssignedToUser")
                         .WithMany("AssignedStories")
                         .HasForeignKey("AssignedTo")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("Taski.Api.Entities.User", "CreatedByUser")
                         .WithMany("CreatedStories")
@@ -483,6 +497,25 @@ namespace Taski.Api.Data.Migrations
                     b.Navigation("Tag");
                 });
 
+            modelBuilder.Entity("Taski.Api.Entities.UserProjectAssociation", b =>
+                {
+                    b.HasOne("Taski.Api.Entities.Project", "Project")
+                        .WithMany("UserProjectAssociations")
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Taski.Api.Entities.User", "User")
+                        .WithMany("UserProjectAssociations")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Project");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("ProjectTag", b =>
                 {
                     b.Navigation("ProjectAssociations");
@@ -498,6 +531,8 @@ namespace Taski.Api.Data.Migrations
                     b.Navigation("Stories");
 
                     b.Navigation("TagAssociations");
+
+                    b.Navigation("UserProjectAssociations");
                 });
 
             modelBuilder.Entity("Taski.Api.Entities.User", b =>
@@ -507,6 +542,8 @@ namespace Taski.Api.Data.Migrations
                     b.Navigation("CreatedStories");
 
                     b.Navigation("Projects");
+
+                    b.Navigation("UserProjectAssociations");
                 });
 #pragma warning restore 612, 618
         }

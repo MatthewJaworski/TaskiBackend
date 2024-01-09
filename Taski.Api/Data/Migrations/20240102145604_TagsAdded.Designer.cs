@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Taski.Api.Data;
 
@@ -11,9 +12,11 @@ using Taski.Api.Data;
 namespace Taski.Api.Data.Migrations
 {
     [DbContext(typeof(TaskiAppContext))]
-    partial class TaskiAppContextModelSnapshot : ModelSnapshot
+    [Migration("20240102145604_TagsAdded")]
+    partial class TagsAdded
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -191,34 +194,6 @@ namespace Taski.Api.Data.Migrations
                     b.ToTable("StoryTags");
                 });
 
-            modelBuilder.Entity("Taski.Api.Entities.Comment", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTimeOffset>("CreateDate")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<Guid>("StoryId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("StoryId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Comment");
-                });
-
             modelBuilder.Entity("Taski.Api.Entities.Project", b =>
                 {
                     b.Property<Guid>("Id")
@@ -267,7 +242,7 @@ namespace Taski.Api.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("AssignedTo")
+                    b.Property<Guid>("AssignedTo")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTimeOffset?>("CompleteDate")
@@ -280,6 +255,7 @@ namespace Taski.Api.Data.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Description")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsComplete")
@@ -298,7 +274,7 @@ namespace Taski.Api.Data.Migrations
                     b.Property<int>("StoryPoints")
                         .HasColumnType("int");
 
-                    b.Property<Guid?>("TagId")
+                    b.Property<Guid>("TagId")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
@@ -384,27 +360,6 @@ namespace Taski.Api.Data.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
-            modelBuilder.Entity("Taski.Api.Entities.UserProjectAssociation", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("ProjectId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProjectId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("UserProjectAssociations");
-                });
-
             modelBuilder.Entity("Taski.Api.Entities.Role", b =>
                 {
                     b.HasBaseType("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>");
@@ -463,25 +418,6 @@ namespace Taski.Api.Data.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Taski.Api.Entities.Comment", b =>
-                {
-                    b.HasOne("Taski.Api.Entities.Story", "Story")
-                        .WithMany("Comments")
-                        .HasForeignKey("StoryId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Taski.Api.Entities.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Story");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("Taski.Api.Entities.Project", b =>
                 {
                     b.HasOne("Taski.Api.Entities.User", "User")
@@ -517,7 +453,8 @@ namespace Taski.Api.Data.Migrations
                     b.HasOne("Taski.Api.Entities.User", "AssignedToUser")
                         .WithMany("AssignedStories")
                         .HasForeignKey("AssignedTo")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("Taski.Api.Entities.User", "CreatedByUser")
                         .WithMany("CreatedStories")
@@ -533,7 +470,9 @@ namespace Taski.Api.Data.Migrations
 
                     b.HasOne("StoryTag", "Tag")
                         .WithMany("Stories")
-                        .HasForeignKey("TagId");
+                        .HasForeignKey("TagId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("AssignedToUser");
 
@@ -542,25 +481,6 @@ namespace Taski.Api.Data.Migrations
                     b.Navigation("Project");
 
                     b.Navigation("Tag");
-                });
-
-            modelBuilder.Entity("Taski.Api.Entities.UserProjectAssociation", b =>
-                {
-                    b.HasOne("Taski.Api.Entities.Project", "Project")
-                        .WithMany("UserProjectAssociations")
-                        .HasForeignKey("ProjectId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Taski.Api.Entities.User", "User")
-                        .WithMany("UserProjectAssociations")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Project");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("ProjectTag", b =>
@@ -578,13 +498,6 @@ namespace Taski.Api.Data.Migrations
                     b.Navigation("Stories");
 
                     b.Navigation("TagAssociations");
-
-                    b.Navigation("UserProjectAssociations");
-                });
-
-            modelBuilder.Entity("Taski.Api.Entities.Story", b =>
-                {
-                    b.Navigation("Comments");
                 });
 
             modelBuilder.Entity("Taski.Api.Entities.User", b =>
@@ -594,8 +507,6 @@ namespace Taski.Api.Data.Migrations
                     b.Navigation("CreatedStories");
 
                     b.Navigation("Projects");
-
-                    b.Navigation("UserProjectAssociations");
                 });
 #pragma warning restore 612, 618
         }

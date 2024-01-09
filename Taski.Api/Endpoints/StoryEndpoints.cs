@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using Taski.Api.Dtos;
 using Taski.Api.Entities;
 using Taski.Api.Enums;
@@ -20,13 +21,20 @@ namespace Taski.Api.Endpoints
 
             group.MapGet("/project/{projectId}", async (Guid projectId, IRepository<Story> storyRepository) =>
             {
-                var stories = (await storyRepository.GetAllAsync()).Where(story => story.ProjectId == projectId).Select(story => story.AsDto());
+                var stories = (await storyRepository.GetAllAsync())
+                .Where(story => story.ProjectId == projectId).Select(story => story.AsDto());
                 return Results.Ok(stories);
             });
 
             group.MapGet("/{id}", async (Guid id, IRepository<Story> storyRepository) =>
             {
-                var story = await storyRepository.GetAsync(id);
+                var story = await storyRepository.GetAll()
+                    .Include(s => s.Tag)
+                    .Include(s => s.CreatedByUser)
+                    .Include(s => s.AssignedToUser)
+                    .Include(s => s.Comments)
+                    .FirstOrDefaultAsync(s => s.Id == id);
+                
                 if (story is null)
                 {
                     return Results.NotFound();
@@ -34,8 +42,16 @@ namespace Taski.Api.Endpoints
                 return Results.Ok(story.AsDto());
             });
 
-            group.MapPost("", async (CreateStoryDto createStoryDto, IRepository<Story> storyRepository) =>
+            group.MapPost("", async (CreateStoryDto createStoryDto, IRepository<Story> storyRepository, IRepository<StoryTag> storyTagRepository) =>
             {
+                var tag = (await storyTagRepository.GetAllAsync()).FirstOrDefault(t => t.Name == createStoryDto.Tag);
+
+                if (tag == null && !string.IsNullOrEmpty(createStoryDto.Tag))
+                {
+                    tag = new StoryTag { Name = createStoryDto.Tag };
+                    await storyTagRepository.CreateAsync(tag);
+                }
+
                 var story = new Story
                 {
                     Id = Guid.NewGuid(),
@@ -43,48 +59,63 @@ namespace Taski.Api.Endpoints
                     CreatedBy = createStoryDto.CreatedBy,
                     Name = createStoryDto.Name,
                     Description = createStoryDto.Description,
-                    AssignedTo = createStoryDto.AssignedTo ?? Guid.Empty,
+                    AssignedTo = createStoryDto.AssignedTo ?? null,
                     CompleteDate = null,
                     CreateDate = DateTimeOffset.UtcNow,
                     IsComplete = false,
                     Priority = createStoryDto.Priority ?? StoryPriority.Low,
-                    StoryPoints = createStoryDto.StoryPoints ?? 0
+                    StoryPoints = createStoryDto.StoryPoints ?? 0,
+
                 };
+                if (tag != null)
+                {
+                    story.TagId = tag.Id;
+                }
                 await storyRepository.CreateAsync(story);
-                return Results.Created($"/api/stories/{story.Id}", story.AsDto());
+                return Results.Created($"/api/stories/{story.Id}", new
+                {
+                    story = story.AsDto(),
+                    success = true
+                });
             });
 
             group.MapPut("/{id}", async (Guid id, UpdateStoryDto updateStoryDto, IRepository<Story> storyRepository) =>
             {
-                var existingStory = await storyRepository.GetAsync(id);
-                if (existingStory is null)
+                try
                 {
-                    return Results.NotFound();
+                    var existingStory = await storyRepository.GetAsync(id);
+                    if (existingStory is null)
+                    {
+                        return Results.NotFound();
+                    }
+                    existingStory.Name = updateStoryDto.Name;
+                    if (updateStoryDto.CreatedBy != null && updateStoryDto.CreatedBy.Id != Guid.Empty)
+                    {
+                        existingStory.CreatedBy = updateStoryDto.CreatedBy.Id;
+                    }
+                    if (updateStoryDto.AssignedTo != null && updateStoryDto.AssignedTo.Id != Guid.Empty)
+                    {
+                        existingStory.AssignedTo = updateStoryDto.AssignedTo.Id;
+                    }
+
+                    existingStory.StoryPoints = updateStoryDto.StoryPoints;
+
+                    existingStory.Priority = updateStoryDto.Priority;
+
+                    existingStory.IsComplete = updateStoryDto.IsComplete;
+
+                    if (updateStoryDto.CompleteDate.HasValue)
+                    {
+                        existingStory.CompleteDate = updateStoryDto.CompleteDate.Value;
+                    }
+                    await storyRepository.UpdateAsync(existingStory);
+                    return Results.Ok(new { success = true });
                 }
-                existingStory.Name = updateStoryDto.Name;
-                existingStory.Description = updateStoryDto.Description;
-                if (updateStoryDto.AssignedTo.HasValue)
+                catch (Exception ex)
                 {
-                    existingStory.AssignedTo = updateStoryDto.AssignedTo.Value;
+                    return Results.Problem();
                 }
-                if (updateStoryDto.StoryPoints.HasValue)
-                {
-                    existingStory.StoryPoints = updateStoryDto.StoryPoints.Value;
-                }
-                if (updateStoryDto.Priority.HasValue)
-                {
-                    existingStory.Priority = updateStoryDto.Priority.Value;
-                }
-                if (updateStoryDto.IsComplete.HasValue)
-                {
-                    existingStory.IsComplete = updateStoryDto.IsComplete.Value;
-                }
-                if (updateStoryDto.CompleteDate.HasValue)
-                {
-                    existingStory.CompleteDate = updateStoryDto.CompleteDate.Value;
-                }
-                await storyRepository.UpdateAsync(existingStory);
-                return Results.NoContent();
+
             });
 
             group.MapDelete("/{id}", async (Guid id, IRepository<Story> storyRepository) =>

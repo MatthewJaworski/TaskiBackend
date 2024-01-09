@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Taski.Api.Data;
 
@@ -11,9 +12,11 @@ using Taski.Api.Data;
 namespace Taski.Api.Data.Migrations
 {
     [DbContext(typeof(TaskiAppContext))]
-    partial class TaskiAppContextModelSnapshot : ModelSnapshot
+    [Migration("20240105195052_PossibleNoTagv2")]
+    partial class PossibleNoTagv2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -191,34 +194,6 @@ namespace Taski.Api.Data.Migrations
                     b.ToTable("StoryTags");
                 });
 
-            modelBuilder.Entity("Taski.Api.Entities.Comment", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTimeOffset>("CreateDate")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<Guid>("StoryId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("StoryId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Comment");
-                });
-
             modelBuilder.Entity("Taski.Api.Entities.Project", b =>
                 {
                     b.Property<Guid>("Id")
@@ -386,21 +361,15 @@ namespace Taski.Api.Data.Migrations
 
             modelBuilder.Entity("Taski.Api.Entities.UserProjectAssociation", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
+                    b.Property<Guid>("UserId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("ProjectId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
+                    b.HasKey("UserId", "ProjectId");
 
                     b.HasIndex("ProjectId");
-
-                    b.HasIndex("UserId");
 
                     b.ToTable("UserProjectAssociations");
                 });
@@ -461,25 +430,6 @@ namespace Taski.Api.Data.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("Taski.Api.Entities.Comment", b =>
-                {
-                    b.HasOne("Taski.Api.Entities.Story", "Story")
-                        .WithMany("Comments")
-                        .HasForeignKey("StoryId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Taski.Api.Entities.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Story");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Taski.Api.Entities.Project", b =>
@@ -580,11 +530,6 @@ namespace Taski.Api.Data.Migrations
                     b.Navigation("TagAssociations");
 
                     b.Navigation("UserProjectAssociations");
-                });
-
-            modelBuilder.Entity("Taski.Api.Entities.Story", b =>
-                {
-                    b.Navigation("Comments");
                 });
 
             modelBuilder.Entity("Taski.Api.Entities.User", b =>

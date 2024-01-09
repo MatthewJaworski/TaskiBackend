@@ -11,4 +11,6 @@ public interface IRepository<T>
   Task CreateAsync(T entity);
   Task UpdateAsync(T entity);
   Task RemoveAsync(Guid id);
+  IQueryable<T> GetAll();
+
 }

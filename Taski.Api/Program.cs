@@ -24,10 +24,14 @@ builder.Services.AddApiVersioning(options =>
 }).AddApiExplorer(options => options.GroupNameFormat = "'v'VVV");
 
 
-
 builder.Services.AddScoped(typeof(IRepository<Project>), typeof(Repository<Project>));
 builder.Services.AddScoped(typeof(IRepository<Story>), typeof(Repository<Story>));
-
+builder.Services.AddScoped(typeof(IRepository<ProjectTag>), typeof(Repository<ProjectTag>));
+builder.Services.AddScoped(typeof(IRepository<ProjectTagAssociation>), typeof(Repository<ProjectTagAssociation>));
+builder.Services.AddScoped(typeof(IRepository<UserProjectAssociation>), typeof(Repository<UserProjectAssociation>));
+builder.Services.AddScoped(typeof(IRepository<StoryTag>), typeof(Repository<StoryTag>));
+builder.Services.AddScoped(typeof(IRepository<User>), typeof(Repository<User>));
+builder.Services.AddScoped(typeof(IRepository<Comment>), typeof(Repository<Comment>));
 
 var connectionString = builder.Configuration.GetConnectionString("TaskiContext");
 
@@ -82,6 +86,7 @@ app.Services.InitializeDatabase();
 app.MapProjectsEndpoint();
 app.MapStoriesEndpoint();
 app.MapUsersEndpoint();
+app.MapCommentsEndpoint();
 
 if (app.Environment.IsDevelopment())
 {

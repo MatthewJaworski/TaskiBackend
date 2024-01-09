@@ -1,6 +1,7 @@
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using Taski.Api.Data;
+using Taski.Api.Entities;
 
 
 namespace Taski.Api.Repositiories;
@@ -12,29 +13,17 @@ public class Repository<T> : IRepository<T> where T : class
   public Repository(IServiceProvider serviceProvider)
   {
     dbContext = new TaskiAppContext(serviceProvider.GetRequiredService<DbContextOptions<TaskiAppContext>>());
-    // if (typeof(T) == typeof(Project))
-    // {
-    //   dbContext = new ProjectContext(serviceProvider.GetRequiredService<DbContextOptions<ProjectContext>>());
-    // }
-    // else if (typeof(T) == typeof(Story))
-    // {
-    //   dbContext = new StoryContext(serviceProvider.GetRequiredService<DbContextOptions<StoryContext>>());
-    // }
-    // else if (typeof(T) == typeof(User))
-    // {
-    //   dbContext = new UserContext(serviceProvider.GetRequiredService<DbContextOptions<UserContext>>());
-    // }
-    // else
-    // {
-    //   throw new InvalidOperationException("Invalid entity type for repository");
-    // }
+
   }
 
   public async Task<IReadOnlyCollection<T>> GetAllAsync()
   {
     return await dbContext.Set<T>().ToListAsync();
   }
-
+  public IQueryable<T> GetAll()
+  {
+    return dbContext.Set<T>();
+  }
   public async Task<IReadOnlyCollection<T>> GetAllAsync(Expression<Func<T, bool>> filter)
   {
     return await dbContext.Set<T>().Where(filter).ToListAsync();
@@ -49,6 +38,8 @@ public class Repository<T> : IRepository<T> where T : class
   {
     return await dbContext.Set<T>().SingleOrDefaultAsync(filter);
   }
+
+
 
   public async Task CreateAsync(T item)
   {
@@ -81,4 +72,5 @@ public class Repository<T> : IRepository<T> where T : class
       await dbContext.SaveChangesAsync();
     }
   }
+
 }

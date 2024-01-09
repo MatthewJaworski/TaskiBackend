@@ -21,19 +21,25 @@ public class TaskiAppContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
             .WithMany(p => p.Stories)
             .HasForeignKey(s => s.ProjectId)
             .OnDelete(DeleteBehavior.Restrict);
-
         modelBuilder.Entity<Story>()
             .HasOne(s => s.CreatedByUser)
             .WithMany(u => u.CreatedStories)
             .HasForeignKey(s => s.CreatedBy)
             .OnDelete(DeleteBehavior.Restrict);
-
         modelBuilder.Entity<Story>()
             .HasOne(s => s.AssignedToUser)
             .WithMany(u => u.AssignedStories)
             .HasForeignKey(s => s.AssignedTo)
+            .OnDelete(DeleteBehavior.Restrict); 
+        modelBuilder.Entity<Comment>()
+            .HasOne(c=>c.Story)
+            .WithMany(s=>s.Comments)
+            .HasForeignKey(c=>c.StoryId)
             .OnDelete(DeleteBehavior.Restrict);
-
+        modelBuilder.Entity<Comment>()
+            .HasOne(c => c.User)
+            .WithMany() 
+            .HasForeignKey(c => c.UserId);
         modelBuilder.Entity<Project>()
             .HasOne(p => p.User)
             .WithMany(u => u.Projects)
@@ -56,8 +62,23 @@ public class TaskiAppContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
         modelBuilder.Entity<Story>()
             .HasOne(s => s.Tag)
             .WithMany(t => t.Stories)
-            .HasForeignKey(s => s.TagId);
+            .HasForeignKey(s => s.TagId)
+            .IsRequired(false);
+
+        modelBuilder.Entity<UserProjectAssociation>()
+            .HasKey(up => new { up.Id });
+
+        modelBuilder.Entity<UserProjectAssociation>()
+            .HasOne(up => up.User)
+            .WithMany(u => u.UserProjectAssociations)
+            .HasForeignKey(up => up.UserId);
+
+        modelBuilder.Entity<UserProjectAssociation>()
+            .HasOne(up => up.Project)
+            .WithMany(p => p.UserProjectAssociations)
+            .HasForeignKey(up => up.ProjectId);
     }
+
 
     public DbSet<Project> Projects => Set<Project>();
     public DbSet<Story> Stories => Set<Story>();
@@ -65,4 +86,5 @@ public class TaskiAppContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
     public DbSet<ProjectTag> ProjectTags => Set<ProjectTag>();
     public DbSet<StoryTag> StoryTags => Set<StoryTag>();
     public DbSet<ProjectTagAssociation> ProjectTagAssociations => Set<ProjectTagAssociation>();
+    public DbSet<UserProjectAssociation> UserProjectAssociations => Set<UserProjectAssociation>();
 }

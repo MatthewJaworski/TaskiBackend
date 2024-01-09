@@ -6,15 +6,17 @@ namespace Taski.Api.Dtos;
 public record StoryDto(
     Guid Id,
     Guid ProjectId,
-    Guid CreatedBy,
-    Guid AssignedTo,
+    UserDto CreatedBy,
+    UserDto? AssignedTo,
     string Name,
     string Description,
     DateTimeOffset CreateDate,
     DateTimeOffset? CompleteDate,
     bool IsComplete,
     int StoryPoints,
-    StoryPriority Priority
+    StoryPriority Priority,
+    TagDto? tag,
+    List<CommentDto> Comments
 );
 
 public record CreateStoryDto(
@@ -24,15 +26,22 @@ public record CreateStoryDto(
     Guid? AssignedTo = null,
     string Description = null,
     int? StoryPoints = null,
-    StoryPriority? Priority = null
+    StoryPriority? Priority = null,
+    string Tag = null
 );
 
-public record UpdateStoryDto(
-    string Name,
-    string Description,
-    Guid? AssignedTo = null,
-    int? StoryPoints = null,
-    StoryPriority? Priority = null,
-    bool? IsComplete = null,
-    DateTimeOffset? CompleteDate = null
-);
+public class UpdateStoryDto
+{
+    public Guid Id { get; set; }
+    public Guid ProjectId { get; set; }
+    public UserDto CreatedBy { get; set; }
+    public UserDto AssignedTo { get; set; }
+    public string Name { get; set; }
+    public string Description { get; set; }
+    public DateTime CreateDate { get; set; }
+    public DateTime? CompleteDate { get; set; }
+    public bool IsComplete { get; set; }
+    public int StoryPoints { get; set; }
+    public StoryPriority Priority { get; set; }
+    public TagDto Tag { get; set; }
+}

@@ -8,4 +8,6 @@ public class User : IdentityUser<Guid>
   public ICollection<Project> Projects { get; set; } = new List<Project>();
   public ICollection<Story> AssignedStories { get; set; } = new List<Story>();
   public ICollection<Story> CreatedStories { get; set; } = new List<Story>();
+
+  public ICollection<UserProjectAssociation> UserProjectAssociations { get; set; } = new List<UserProjectAssociation>();
 }

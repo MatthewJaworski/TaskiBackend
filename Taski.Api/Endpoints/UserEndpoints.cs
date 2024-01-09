@@ -7,13 +7,18 @@ using Taski.Authenticator.Dtos;
 using Taski.Api.Entities;
 using Taski.Api.Constants;
 using Taski.Api.Dtos;
+using System.Threading.Tasks.Dataflow;
+using System.Text.RegularExpressions;
+using Taski.Api.Repositiories;
+using Taski.Api.Extensions;
+using Microsoft.AspNetCore.Mvc;
 namespace Taski.Api.Endpoints;
 
 public static class UserEndpoints
 {
   public static RouteGroupBuilder MapUsersEndpoint(this IEndpointRouteBuilder routes)
   {
-    var group = routes.MapGroup("/api/auth").WithParameterValidation();
+    var group = routes.MapGroup("/api/user").WithParameterValidation();
 
     group.MapPost("roles/add", async (CreateRoleDto request, RoleManager<Role> roleManager) =>
     {
@@ -59,8 +64,63 @@ public static class UserEndpoints
       });
     });
 
+
+    group.MapGet("", async (IRepository<User> userRepository) =>
+    {
+      var users = (await userRepository.GetAllAsync()).Select(user => user.AsDto());
+      return Results.Ok(users);
+    }).RequireAuthorization();
+
+    group.MapPost("/project", async (AddUserToProjectDto addUserToProjectDto, IRepository<User> userRepository, IRepository<Project> projectRepository, IRepository<UserProjectAssociation> userProjectAssociation) =>
+    {
+      var user = await userRepository.GetAsync(u => u.Id == addUserToProjectDto.userId);
+      if (user == null)
+      {
+        return Results.NotFound(new { success = false, message = "User not found" });
+      }
+      var project = await projectRepository.GetAsync(p => p.Id == addUserToProjectDto.projectId);
+      if (project == null)
+      {
+        return Results.NotFound(new { success = false, message = "Project not found" });
+      }
+      var existingAssociation = await userProjectAssociation.GetAsync(upa => upa.UserId == user.Id && upa.ProjectId == project.Id);
+      if (existingAssociation != null)
+      {
+        return Results.Conflict(new { success = false, message = "User is already in the project" });
+      }
+      var userProject = new UserProjectAssociation
+      {
+        UserId = user.Id,
+        ProjectId = project.Id
+      };
+      await userProjectAssociation.CreateAsync(userProject);
+      return Results.Ok(new { success = true, message = "User added to project successfully" });
+    }).RequireAuthorization();
+
+    group.MapDelete("/project", async ([FromBody] AddUserToProjectDto addUserToProjectDto, IRepository<User> userRepository, IRepository<Project> projectRepository, IRepository<UserProjectAssociation> userProjectAssociation) =>
+    {
+      var user = await userRepository.GetAsync(u => u.Id == addUserToProjectDto.userId);
+      if (user == null)
+      {
+        return Results.NotFound(new { success = false, message = "User not found" });
+      }
+      var project = await projectRepository.GetAsync(p => p.Id == addUserToProjectDto.projectId);
+      if (project == null)
+      {
+        return Results.NotFound(new { success = false, message = "Project not found" });
+      }
+      var existingAssociation = await userProjectAssociation.GetAsync(upa => upa.UserId == user.Id && upa.ProjectId == project.Id);
+      if (existingAssociation == null)
+      {
+        return Results.Conflict(new { success = false, message = "User is not in the project" });
+      }
+      await userProjectAssociation.RemoveAsync(existingAssociation.Id);
+      return Results.Ok(new { success = true, message = "User removed from project successfully" });
+    }).RequireAuthorization();
     return group;
   }
+
+
 
   private static async Task<RegisterResponseDto> RegisterAsync(RegisterRequestDto request, UserManager<User> userManager)
   {
@@ -166,4 +226,6 @@ public static class UserEndpoints
       return new LoginResponseDto { Success = false, Message = ex.Message };
     }
   }
+
+
 }

@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "E:\\TASKI\\Taski.Api\\Taski.Api.csproj": {}
+    "e:\\TASKI\\Taski.Api\\Taski.Api.csproj": {}
   },
   "projects": {
-    "E:\\TASKI\\Taski.Api\\Taski.Api.csproj": {
+    "e:\\TASKI\\Taski.Api\\Taski.Api.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "E:\\TASKI\\Taski.Api\\Taski.Api.csproj",
+        "projectUniqueName": "e:\\TASKI\\Taski.Api\\Taski.Api.csproj",
         "projectName": "Taski.Api",
-        "projectPath": "E:\\TASKI\\Taski.Api\\Taski.Api.csproj",
+        "projectPath": "e:\\TASKI\\Taski.Api\\Taski.Api.csproj",
         "packagesPath": "C:\\Users\\Mateusz\\.nuget\\packages\\",
-        "outputPath": "E:\\TASKI\\Taski.Api\\obj\\",
+        "outputPath": "e:\\TASKI\\Taski.Api\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\Mateusz\\AppData\\Roaming\\NuGet\\NuGet.Config",

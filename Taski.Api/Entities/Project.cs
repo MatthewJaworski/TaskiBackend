@@ -11,4 +11,5 @@ public class Project
   public DateTimeOffset CreateDate { get; set; }
   public ICollection<Story> Stories { get; set; } = new List<Story>();
   public ICollection<ProjectTagAssociation> TagAssociations { get; set; } = new List<ProjectTagAssociation>();
+  public ICollection<UserProjectAssociation> UserProjectAssociations { get; set; } = new List<UserProjectAssociation>();
 }

@@ -5,7 +5,7 @@
 namespace Taski.Api.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class UpdateRole : Migration
+    public partial class PossibleNoTag : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
