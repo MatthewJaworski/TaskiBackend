@@ -8,7 +8,7 @@ public static class CommentEndpoints
 {
   public static void MapCommentsEndpoint(this IEndpointRouteBuilder routes)
   {
-    var group = routes.MapGroup("/api/comments").WithParameterValidation().RequireAuthorization();
+    var group = routes.MapGroup("/api/comments").WithTags("Comments").WithParameterValidation().RequireAuthorization();
 
     group.MapPost("/story", async (AddCommentDto addCommentDto, IRepository<Story> storyRepository, IRepository<Comment> commentRepository) =>
     {

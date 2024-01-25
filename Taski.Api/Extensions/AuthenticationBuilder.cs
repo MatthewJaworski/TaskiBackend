@@ -7,7 +7,7 @@ namespace Taski.Api.Extensions;
 public static class AuthenticationBuilder
 {
 
-  public static IServiceCollection AddAuthentication(WebApplicationBuilder builder, TokenValidationParameters? tokenValidationParameters)
+  public static IServiceCollection AddAuthentication(WebApplicationBuilder builder)
   {
     builder.Services.AddAuthentication(x =>
     {
@@ -17,7 +17,7 @@ public static class AuthenticationBuilder
     {
       x.RequireHttpsMetadata = true;
       x.SaveToken = true;
-      x.TokenValidationParameters = tokenValidationParameters ?? new TokenValidationParameters
+      x.TokenValidationParameters = new TokenValidationParameters
       {
         ValidateIssuerSigningKey = true,
         ValidateIssuer = true,
@@ -25,7 +25,7 @@ public static class AuthenticationBuilder
         ValidateLifetime = true,
         ValidIssuer = "https://localhost:5001",
         ValidAudience = "https://localhost:5001",
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("1swek3u4uo2u4a6e")),
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("P5BsNuJR8hgfAx7ap9ZkW3jmGnC6rMDe")),
         ClockSkew = TimeSpan.Zero
       };
     });

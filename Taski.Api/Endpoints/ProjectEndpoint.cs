@@ -10,18 +10,29 @@ public static class ProjectEndpoints
 {
     public static void MapProjectsEndpoint(this IEndpointRouteBuilder routes)
     {
-        var group = routes.MapGroup("/api/projects").WithParameterValidation().RequireAuthorization();
+        var group = routes.MapGroup("/api/projects").WithTags("Project").WithParameterValidation().RequireAuthorization();
 
         group.MapGet("", async (IRepository<Project> projectRepository) =>
         {
             var projects = (await projectRepository.GetAllAsync()).Select(project => project.AsDto());
-            return Results.Ok(projects);
+            return Results.Ok(new {projects});
         });
 
-        group.MapGet("/user/{userId}", async (Guid userId, IRepository<Project> projectRepository) =>
+        group.MapGet("/user/{userId}", async (Guid userId, IRepository<Project> projectRepository, IRepository<UserProjectAssociation> userProjectAssociationRepository) =>
         {
-            var projects = (await projectRepository.GetAllAsync(project => project.UserId == userId)).Select(project => project.AsDto());
-            return Results.Ok(new { projects });
+            var projectIds = (await userProjectAssociationRepository.GetAllAsync(upa => upa.UserId == userId)).Select(upa => upa.ProjectId);
+
+            var projects = await projectRepository.GetAllAsync(
+                project => project.TagAssociations,
+                project => project.Stories,
+                project => project.UserProjectAssociations,
+                project => project.User);
+
+            projects = projects.Where(project => projectIds.Contains(project.Id))
+                .OrderByDescending(project => project.CreateDate)
+                .ToList();
+
+            return Results.Ok(new { Projects = projects.Select(project => project.AsDto()) });
         });
 
         group.MapGet("/{id}", async (Guid id, IRepository<Project> projectRepository) =>

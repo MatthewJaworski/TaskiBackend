@@ -20,4 +20,5 @@ public class RegisterRequestDto
     public string Password { get; set; } = string.Empty;
     [Required, DataType(DataType.Password), Compare(nameof(Password), ErrorMessage = Errors.PassowrdNotMatch)]
     public string ConfirmPassword { get; set; } = string.Empty;
+    public string Role { get; set; } = string.Empty;
 }

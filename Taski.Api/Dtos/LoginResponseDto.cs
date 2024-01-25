@@ -8,5 +8,6 @@ public class LoginResponseDto
     public string Email { get; set; } = string.Empty;
     public string UserId { get; set; } = string.Empty;
     public string Message { get; set; } = string.Empty;
+    public string Password { get; set; } = string.Empty;
     public Dictionary<string, List<string>> Errors { get; set; } = new Dictionary<string, List<string>>();
 }

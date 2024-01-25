@@ -30,15 +30,15 @@ public class TaskiAppContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
             .HasOne(s => s.AssignedToUser)
             .WithMany(u => u.AssignedStories)
             .HasForeignKey(s => s.AssignedTo)
-            .OnDelete(DeleteBehavior.Restrict); 
-        modelBuilder.Entity<Comment>()
-            .HasOne(c=>c.Story)
-            .WithMany(s=>s.Comments)
-            .HasForeignKey(c=>c.StoryId)
             .OnDelete(DeleteBehavior.Restrict);
+        modelBuilder.Entity<Story>()
+            .HasMany(s => s.Comments)
+            .WithOne(c => c.Story)
+            .HasForeignKey(c => c.StoryId)
+            .OnDelete(DeleteBehavior.Cascade);
         modelBuilder.Entity<Comment>()
             .HasOne(c => c.User)
-            .WithMany() 
+            .WithMany()
             .HasForeignKey(c => c.UserId);
         modelBuilder.Entity<Project>()
             .HasOne(p => p.User)

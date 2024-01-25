@@ -12,17 +12,19 @@ using System.Text.RegularExpressions;
 using Taski.Api.Repositiories;
 using Taski.Api.Extensions;
 using Microsoft.AspNetCore.Mvc;
+using Taski.Api.Utils;
+using Microsoft.EntityFrameworkCore;
 namespace Taski.Api.Endpoints;
 
 public static class UserEndpoints
 {
   public static RouteGroupBuilder MapUsersEndpoint(this IEndpointRouteBuilder routes)
   {
-    var group = routes.MapGroup("/api/user").WithParameterValidation();
+    var group = routes.MapGroup("/api/user").WithTags("User").WithParameterValidation();
 
     group.MapPost("roles/add", async (CreateRoleDto request, RoleManager<Role> roleManager) =>
     {
-      var appRole = new Role { Name = "User" };
+      var appRole = new Role { Name = request.Role };
       var createRole = await roleManager.CreateAsync(appRole);
 
       if (!createRole.Succeeded)
@@ -42,7 +44,6 @@ public static class UserEndpoints
       var result = await RegisterAsync(request, userManager);
       if (result.Success)
       {
-        var loginResult = await LoginAsync(new LoginRequestDto { Email = request.Email, Password = request.Password }, userManager, passwordHasher);
         return Results.Ok(result);
       }
       return Results.BadRequest(new
@@ -69,6 +70,65 @@ public static class UserEndpoints
     {
       var users = (await userRepository.GetAllAsync()).Select(user => user.AsDto());
       return Results.Ok(users);
+    }).RequireAuthorization();
+
+
+    group.MapPost("/refresh-token", async (RefreshTokenRequestDto request, IRepository<User> userRepository, UserManager<User> userManager) =>
+    {
+      var handler = new JwtSecurityTokenHandler();
+      JwtSecurityToken jwtToken;
+      try
+      {
+        jwtToken = handler.ReadJwtToken(request.token);
+      }
+      catch (Exception ex)
+      {
+        return Results.Unauthorized();
+      }
+      var id = jwtToken.Claims.First(claim => claim.Type == "id").Value;
+      var user = (await userRepository.GetAllAsync(u => u.Id == Guid.Parse(id))).SingleOrDefault();
+      if (user == null)
+      {
+        return Results.Unauthorized();
+      }
+      var tokenGenerator = new JwtTokenGenerator(userManager, "P5BsNuJR8hgfAx7ap9ZkW3jmGnC6rMDe");
+      var token = await tokenGenerator.GenerateToken(user);
+      var reponse = new JwtSecurityTokenHandler().WriteToken(token);
+      return Results.Ok(new { refreshedToken = reponse });
+    });
+
+    group.MapGet("/{id}", async (IRepository<User> userRepository, Guid id) =>
+    {
+      var user = await userRepository.GetAll()
+        .Where(u => u.Id == id)
+        .Include(u => u.Projects)
+        .Include(u => u.AssignedStories)
+        .Include(u => u.CreatedStories)
+        .Include(u => u.UserProjectAssociations)
+        .SingleOrDefaultAsync();
+
+      if (user == null)
+      {
+        return Results.NotFound(new { success = false, message = "User not found" });
+      }
+      return Results.Ok(user.AsWholeDto());
+    }).RequireAuthorization("Admin");
+
+    group.MapDelete("/{id}", async (IRepository<User> userRepository, IRepository<Project> projectRepository, Guid id) =>
+    {
+      var user = await userRepository.GetAsync(u => u.Id == id);
+      if (user == null)
+      {
+        return Results.NotFound(new { success = false, message = "User not found" });
+      }
+      var userProjects = await projectRepository.GetAllAsync(p => p.UserId == id);
+
+      foreach (var project in userProjects)
+      {
+        await projectRepository.RemoveAsync(project.Id);
+      }
+      await userRepository.RemoveAsync(user.Id);
+      return Results.Ok(new { success = true, message = "User deleted successfully" });
     }).RequireAuthorization();
 
     group.MapPost("/project", async (AddUserToProjectDto addUserToProjectDto, IRepository<User> userRepository, IRepository<Project> projectRepository, IRepository<UserProjectAssociation> userProjectAssociation) =>
@@ -144,10 +204,20 @@ public static class UserEndpoints
         FullName = request.FullName,
         Email = request.Email,
         ConcurrencyStamp = Guid.NewGuid().ToString(),
-        UserName = request.Email,
+        UserName = request.Username,
       };
       var createUserResult = await userManager.CreateAsync(userExists, request.Password);
-      var addUserToRoleResult = await userManager.AddToRoleAsync(userExists, "User");
+      if (!createUserResult.Succeeded)
+      {
+        return new RegisterResponseDto
+        {
+          Message = "User creation failed: " + string.Join(", ", createUserResult.Errors.Select(x => x.Description)),
+          Success = false
+        };
+      }
+
+      var addUserToRoleResult = await userManager.AddToRoleAsync(userExists, request.Role);
+
       return new RegisterResponseDto { Message = Messages.UserCreatedSuccessfully, Success = true };
     }
 
@@ -187,29 +257,10 @@ public static class UserEndpoints
                         { "General", new List<string> { "Invalid email/password" } }
                     }
       };
-      var claims = new List<Claim>
-                {
-                    new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-                    new Claim("username", user.UserName),
-                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                    new Claim("id", user.Id.ToString())
-                };
-      var roles = await userManager.GetRolesAsync(user);
-      var roleClaims = roles.Select(role => new Claim(ClaimTypes.Role, role));
-      claims.AddRange(roleClaims);
 
-      var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("P5BsNuJR8hgfAx7ap9ZkW3jmGnC6rMDe"));
-      var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-      var expires = DateTime.Now.AddMinutes(120);
+      var tokenGenerator = new JwtTokenGenerator(userManager, "P5BsNuJR8hgfAx7ap9ZkW3jmGnC6rMDe");
+      var token = await tokenGenerator.GenerateToken(user);
 
-      var token = new JwtSecurityToken(
-          issuer: "https://localhost:5001",
-          audience: "https://localhost:5001",
-          claims: claims,
-          expires: expires,
-          signingCredentials: creds
-
-      );
       return new LoginResponseDto
       {
         AccessToken = new JwtSecurityTokenHandler().WriteToken(token),

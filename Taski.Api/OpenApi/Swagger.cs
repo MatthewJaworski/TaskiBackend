@@ -21,9 +21,32 @@ public class Swagger : IConfigureOptions<SwaggerGenOptions>
     {
       options.SwaggerDoc(description.GroupName, new OpenApiInfo
       {
-        Title = $"My API {description.ApiVersion}",
+        Title = $"Taski api {description.ApiVersion}",
         Version = description.ApiVersion.ToString()
       });
     }
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+      Description = "JWT Authorization header using the Bearer scheme. Enter 'Bearer' [space] and then your token in the text input below.",
+      Name = "JWT Authorization",
+      In = ParameterLocation.Header,
+      Type = SecuritySchemeType.ApiKey,
+      Scheme = "Bearer",
+    });
+
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+        {
+            {
+                new OpenApiSecurityScheme
+                {
+                    Reference = new OpenApiReference
+                    {
+                        Type = ReferenceType.SecurityScheme,
+                        Id = "Bearer"
+                    }
+                },
+                new string[] {}
+            }
+        });
   }
 }

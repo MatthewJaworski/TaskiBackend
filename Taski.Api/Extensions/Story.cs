@@ -10,7 +10,7 @@ public static class StoryExtensions
     TagDto tagDto = null;
     if (story.Tag != null)
     {
-      tagDto = new TagDto(story.Tag.Id, story.Tag.Name);
+      tagDto = story.Tag.AsDto();
     }
 
     UserDto createdByDto = story.CreatedByUser != null ? story.CreatedByUser.AsDto() : null;

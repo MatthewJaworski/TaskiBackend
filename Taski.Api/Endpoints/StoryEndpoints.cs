@@ -11,7 +11,7 @@ namespace Taski.Api.Endpoints
     {
         public static void MapStoriesEndpoint(this IEndpointRouteBuilder routes)
         {
-            var group = routes.MapGroup("/api/stories").WithParameterValidation().RequireAuthorization();
+            var group = routes.MapGroup("/api/stories").WithTags("Story").WithParameterValidation().RequireAuthorization();
 
             group.MapGet("", async (IRepository<Story> storyRepository) =>
             {
@@ -34,7 +34,7 @@ namespace Taski.Api.Endpoints
                     .Include(s => s.AssignedToUser)
                     .Include(s => s.Comments)
                     .FirstOrDefaultAsync(s => s.Id == id);
-                
+
                 if (story is null)
                 {
                     return Results.NotFound();
@@ -126,7 +126,14 @@ namespace Taski.Api.Endpoints
                     return Results.NotFound();
                 }
                 await storyRepository.RemoveAsync(existingStory.Id);
-                return Results.NoContent();
+                return Results.Ok(new { success = true });
+            });
+
+            group.MapGet("/user/{id}", async (Guid id, IRepository<Story> storyRepository) =>
+            {
+                var stories = (await storyRepository.GetAllAsync())
+                .Where(story => story.AssignedTo == id).Select(story => story.AsDto()).OrderByDescending(story => story.CreateDate).ToList();
+                return Results.Ok(stories);
             });
         }
     }

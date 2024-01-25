@@ -28,7 +28,25 @@ public class Repository<T> : IRepository<T> where T : class
   {
     return await dbContext.Set<T>().Where(filter).ToListAsync();
   }
+public async Task<IReadOnlyCollection<T>> GetAllAsync(params Expression<Func<T, object>>[] includeProperties)
+{
+    IQueryable<T> query = dbContext.Set<T>();
+    foreach (var includeProperty in includeProperties)
+    {
+        query = query.Include(includeProperty);
+    }
 
+    return await query.ToListAsync();
+}
+  public async Task<T> GetAsync(params Expression<Func<T, object>>[] includeProperties){
+    IQueryable<T> query = dbContext.Set<T>();
+    foreach (var includeProperty in includeProperties)
+    {
+        query = query.Include(includeProperty);
+    }
+
+    return await query.SingleOrDefaultAsync();
+  }
   public async Task<T> GetAsync(Guid id)
   {
     return await dbContext.Set<T>().FindAsync(id);

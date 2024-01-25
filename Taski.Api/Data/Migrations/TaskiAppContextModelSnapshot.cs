@@ -468,7 +468,7 @@ namespace Taski.Api.Data.Migrations
                     b.HasOne("Taski.Api.Entities.Story", "Story")
                         .WithMany("Comments")
                         .HasForeignKey("StoryId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Taski.Api.Entities.User", "User")

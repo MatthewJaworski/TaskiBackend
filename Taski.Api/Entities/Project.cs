@@ -1,4 +1,3 @@
-// Project.cs
 namespace Taski.Api.Entities;
 
 public class Project
