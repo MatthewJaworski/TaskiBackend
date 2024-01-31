@@ -1,14 +1,9 @@
 using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.IdentityModel.Tokens;
 using Taski.Authenticator.Dtos;
 using Taski.Api.Entities;
 using Taski.Api.Constants;
 using Taski.Api.Dtos;
-using System.Threading.Tasks.Dataflow;
-using System.Text.RegularExpressions;
 using Taski.Api.Repositiories;
 using Taski.Api.Extensions;
 using Microsoft.AspNetCore.Mvc;

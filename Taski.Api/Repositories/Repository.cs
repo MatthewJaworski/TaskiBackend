@@ -13,7 +13,6 @@ public class Repository<T> : IRepository<T> where T : class
   public Repository(IServiceProvider serviceProvider)
   {
     dbContext = new TaskiAppContext(serviceProvider.GetRequiredService<DbContextOptions<TaskiAppContext>>());
-
   }
 
   public async Task<IReadOnlyCollection<T>> GetAllAsync()
@@ -56,8 +55,6 @@ public async Task<IReadOnlyCollection<T>> GetAllAsync(params Expression<Func<T, 
   {
     return await dbContext.Set<T>().SingleOrDefaultAsync(filter);
   }
-
-
 
   public async Task CreateAsync(T item)
   {

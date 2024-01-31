@@ -15,18 +15,22 @@ public static class ProjectEndpoints
         group.MapGet("", async (IRepository<Project> projectRepository) =>
         {
             var projects = (await projectRepository.GetAllAsync()).Select(project => project.AsDto());
-            return Results.Ok(new {projects});
+            return Results.Ok(new { projects });
         });
 
         group.MapGet("/user/{userId}", async (Guid userId, IRepository<Project> projectRepository, IRepository<UserProjectAssociation> userProjectAssociationRepository) =>
         {
             var projectIds = (await userProjectAssociationRepository.GetAllAsync(upa => upa.UserId == userId)).Select(upa => upa.ProjectId);
 
-            var projects = await projectRepository.GetAllAsync(
-                project => project.TagAssociations,
-                project => project.Stories,
-                project => project.UserProjectAssociations,
-                project => project.User);
+            var projects = await projectRepository.GetAll()
+            .Include(project => project.TagAssociations)
+            .Include(project => project.UserProjectAssociations)
+            .Include(project => project.User)
+            .Include(project => project.Stories)
+                .ThenInclude(story => story.AssignedToUser)
+            .Include(project => project.Stories)
+                .ThenInclude(story => story.CreatedByUser)
+            .ToListAsync();
 
             projects = projects.Where(project => projectIds.Contains(project.Id))
                 .OrderByDescending(project => project.CreateDate)
